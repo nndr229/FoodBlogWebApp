@@ -215,6 +215,13 @@ app.get('/blogs', (req, res) => {
 					req.flash('error', 'No Users/Blogs match your search');
 					res.redirect('/blogs');
 				} else if (foundBlogs.length > 0 || foundUsers.length > 0) {
+					for (let i = 0; i < foundBlogs.length; i++) {
+						const clean = sanitizeHTML(foundBlogs[i].body, {
+							allowedTags: [ 'h3', 'p', 'strong', 'br', 'caption' ]
+						});
+						foundBlogs[i].body = clean;
+						console.log(foundBlogs[i].body);
+					}
 					res.render('index', { blogs: foundBlogs, users: foundUsers });
 				}
 			})
