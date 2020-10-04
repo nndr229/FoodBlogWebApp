@@ -1,0 +1,34 @@
+<%- include("../partials/header") %>
+<div class="ui main text container segment">
+    <div class="ui huge header">Edit Your Profile</div>
+    <form class = "ui form" action="/users/<%= user._id%>?_method=PUT" method="POST" enctype="multipart/form-data">
+        <div class="field">
+            <label>First Name</label>
+            <input type="text" name="user[firstName]" value= <%=user.firstName%>   required>
+        </div>
+        <div class="field">
+            <label>Last Name</label>
+            <input type="text" name="user[lastName]" value=<%=user.lastName%> required>
+        </div>
+        <div class="field">
+            <label>email</label>
+            <input type="email" name="user[email]" value=<%=user.email%> required>
+        </div>
+        <div class = "field" id="Upload">
+            <label>Profile Picture</label>
+            <input type="file" id="upl" name="image" accept="image/*">
+        </div>
+        <div class="field">
+            <label>Username</label>
+            <input type="text" name="user[username]" value=<%= user.username %> required>
+        </div>
+        <div class="field">
+            <label>Admin Code</label>
+            <input type="text" name="adminCode" placeholder="Admin Code(Enter only if you're an admin)">
+        </div>
+        <div class="ui centered grid">
+            <input class="ui green basic button" type="submit">
+        </div>
+    </form>
+</div>
+<%- include("../partials/footer") %>

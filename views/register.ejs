@@ -1,0 +1,41 @@
+<%- include("partials/header") %>
+
+<div class="ui main text container segment">
+    <div class="ui huge header">Sign Up!</div>
+    <form class = "ui form" action="/register" method="POST" enctype="multipart/form-data">
+        <div class="field">
+            <label>First Name</label>
+            <input type="text" name="firstName" placeholder="First Name"  required>
+        </div>
+        <div class="field">
+            <label>Last Name</label>
+            <input type="text" name="lastName" placeholder="Last Name" required>
+        </div>
+        <div class="field">
+            <label>email</label>
+            <input type="email" name="email" placeholder="email" required>
+        </div>
+        <div class = "field" id="Upload">
+            <label>Profile Picture</label>
+            <input type="file" id="upl" name="image" accept="image/*">
+        </div>
+        <div class="field">
+            <label>Username</label>
+            <input type="text" name="username" placeholder="username"  autocomplete="on" required>
+        </div>
+        <div class="field">
+            <label>Password</label>
+            <input type="password" name="password" placeholder="password" autocomplete="off" required>
+        </div>
+        <div class="field">
+            <label>Admin Code</label>
+            <input type="text" name="adminCode" placeholder="Admin Code(Enter only if you're an admin)">
+        </div>
+        <div class="ui centered grid field">
+            <input class="ui green basic  button" type="submit">
+        </div>
+    </form>
+</div>
+
+
+<%- include("partials/footer") %>

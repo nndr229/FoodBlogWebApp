@@ -1,0 +1,69 @@
+<%- include("partials/header") %>
+<% if(blogs.length>0){ %> 
+<div class="ui  main text container">
+    <div class="ui huge text header" id="align">Blog Posts</div>
+        <div class="ui top attached segment">
+            <div class="ui centered divided items" id="index_justify">
+            <% blogs.forEach((blog) => { %>
+                <div class="item">
+                    <div class="image"  id="marginise">
+                        <img src="<%= blog.image %>" >
+                    </div>
+                    <div class=" content" id="marginise" >
+                        <div class="top" >
+                            <a class="ui header" href="/blogs/<%= blog._id %> "><%= blog.title %></a>
+                        </div>
+                        <div class=" " id="date">
+                            <span> <%= blog.created.toDateString() %> </span>
+                        </div>
+                        <div class="description ">
+                            <p><%- blog.body.substring(0,90) %>...</p>
+                            <p><em>Submitted by - <a href='/users/<%=blog.author.id %>'><%=blog.author.username%></em></a></p>
+                        </div>
+                        <div class="extra" >
+                            <a class="ui floated basic violet button" href="/blogs/<%= blog._id %> ">
+                                Read More<i class="right chevron icon" id="r_icon"></i></a>
+                        </div>
+                    </div>
+                </div>    
+            <% }); %>     
+        </div>
+    </div>
+</div>
+<% } %> 
+<% if(users.length>0) {%>
+    <div class="ui main text container ">
+        <div class="ui huge text header" id="align">Users</div>
+        <div class="ui top attached segment">
+            <div class="ui centered divided items">
+                <% users.forEach((user) => { %>
+                    <div class="item" >
+                        <div class="image" style="width:13%" id="marginise">
+                            <img src="<%= user.image %>" >
+                        </div>
+                        <div class=" content" id="marginise" >
+                            <div class="top" >
+                                <h4>Username : <%= user.username %></h4>
+                            </div>
+                            <div class="extra">
+                                <p><%-user.firstName  %> <%-user.lastName  %></p>
+                                <a class="ui floated basic violet button" href="/users/<%= user.id %> ">
+                                    Go to Profile<i class="right chevron icon" id="r_icon"></i></a>
+                            </div>
+                        </div>
+                    </div>    
+                <% }); %>     
+            </div>
+        </div>
+    </div>
+<% } %> 
+<script>
+    let w = $( window ).width();
+    console.log(w);
+     if(w<700){ 
+        $(".content").css('marginLeft','20px');
+        $(".top").css("marginTop", "10px")
+    }
+
+</script>
+<%- include("partials/footer") %>

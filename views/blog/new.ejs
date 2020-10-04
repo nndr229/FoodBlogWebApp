@@ -1,0 +1,48 @@
+<%- include("../partials/header") %>
+<div class="ui main text container segment">
+    <div class="ui huge header">New Blog</div>
+    <form class = "ui form" action="/blogs" method="POST" enctype="multipart/form-data">
+        <div class="field">
+            <label>Title</label>
+            <input type="text" name="blog[title]" placeholder="title" required>
+        </div>
+        <div class="field inline">
+            <label for="">Image Type</label>
+            <select class="ui dropdown" id="cases">
+                <option value="">Choose</option>
+                <option value="Upload">Upload</option>
+                <option value="URL">URL</option>
+            </select>
+            <div class = "hidden" id="Upload">
+                <label for="imageUpload">Image Upload</label>
+                <input type="file" id="upl" name="image" accept="image/*" required>
+            </div>
+            <div class="hidden" id="URL">
+                <label for="imageURL">Image URL</label>
+                <input type="url" id="url" name="blog[image]" placeholder="image url" required>
+            </div>
+            
+        </div>
+        <div class="field">
+            <label>Blog Content</label>
+            <textarea name="blog[body]" required placeholder="blog post goes here"></textarea>    
+        </div>
+        <input class="ui green basic big button" type="submit">
+    </form>    
+</div>
+<script>
+        $('.hidden').hide()
+        console.log($('hidden'));
+        $('#cases').change(function () {
+            var value = this.value;
+            $('.hidden').hide()
+            $('#' + this.value).show();
+            if (value === 'Upload'){
+                $('#url').removeAttr("required");
+            }else if(value==="URL"){
+                $('#upl').removeAttr("required")
+            }
+        });
+</script>
+
+<%- include("../partials/footer")  %> 

@@ -1,0 +1,127 @@
+i.icon {
+	font-size: 2em;
+}
+.container.main {
+	margin-top: 7.0em;
+}
+/* img {
+	height: auto;
+	max-width: 40em;
+} */
+#delete {
+	display: inline;
+}
+.centered.grid {
+	margin-top: 1em;
+}
+#color_apply {
+	background: #70e1f5; /* fallback for old browsers */
+	background: -webkit-linear-gradient(to right, #ffd194, #70e1f5); /* Chrome 10-25, Safari 5.1-6 */
+	background: linear-gradient(
+		to right,
+		#ffd194,
+		#70e1f5
+	); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+#r_icon {
+	font-size: 1em;
+}
+#buttonsGrid {
+	margin-bottom: 10px;
+}
+#centerContent {
+	margin: auto 0;
+}
+#fltCenter {
+	margin-left: 11%;
+}
+#comments {
+	margin-bottom: 2px;
+}
+#fltEnd {
+	border: 1px solid gray;
+	float: right;
+}
+#content {
+	min-height: 100px;
+}
+.ui.grid {
+	padding: 0 !important;
+}
+.pushable.segment {
+	margin: 0 !important;
+}
+.pusher {
+	-webkit-transform: translate3d(0, -20px, 0);
+	transform: translate3d(0, -20px, 0);
+}
+.pushable:not(body) {
+	transform: none;
+}
+.pushable:not(body) > .ui.sidebar,
+.pushable:not(body) > .fixed,
+.pushable:not(body) > .pusher:after {
+	position: fixed;
+}
+#index_justify {
+	justify-content: center;
+}
+
+#givePd {
+	margin-bottom: 10px;
+}
+#fill {
+	padding-right: 0px;
+	padding-bottom: 0px;
+	padding-left: 0px;
+	padding-top: 0px;
+	border-top-width: 0px;
+	border-right-width: 0px;
+	border-bottom-width: 0px;
+	border-left-width: 0px;
+}
+.ui.menu .dropdown.item .menu {
+	background: #1b1c1d;
+}
+.ui.styled.accordion {
+	background: #1b1c1d;
+	color: white;
+}
+a {
+	color: inherit;
+}
+.head {
+	padding-top: 0px;
+	padding-bottom: 0px;
+	border-top-width: 0px;
+	margin-top: 5px;
+}
+#menu_comp {
+	height: 66px;
+}
+i.icon {
+	font-size: inherit;
+}
+#mob {
+	height: 50px;
+}
+.ui.message {
+	margin-top: 100px;
+}
+#modIcon {
+	margin-left: 5px;
+	margin-bottom: 5px;
+}
+html,
+body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
+	overflow-x: hidden;
+	scroll-behavior: smooth;
+}
+#marginise {
+	margin-top: auto;
+	margin-bottom: auto;
+}

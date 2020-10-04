@@ -1,0 +1,47 @@
+<%- include("../partials/header") %>
+
+<div class="ui main text container segment">
+    <div class="ui huge header"><%= blog.title %> </div>
+    <div class="ui top attached">
+        <div class="item">
+            <img class="ui centered rounded image" src="<%= blog.image %> ">
+        </div>
+        <div class="content">
+            <span> <%= blog.created.toDateString() %> </span>
+        </div>
+        <div class="description">
+            <p style="margin-top: 10px;"><%- blog.body %></p>
+            <p><em>Blog submitted by - <a href="/users/<%=blog.author.id %>"><%= blog.author.username%></em></a></p>
+        </div>
+        <div class="ui centered grid" id="buttonsGrid">
+            <%  if((currentUser && blog.author.id.equals(currentUser._id)) || (currentUser && currentUser.isAdmin)){   %>
+            <a class="ui green basic button" href="/blogs/<%= blog._id %>/edit">Edit Post</a>
+            <form id="delete" action="/blogs/<%= blog._id%>?_method=DELETE" method="POST">
+                <button class="ui red basic button">Delete</button>
+            </form>
+            <%   }%>
+            <a class="ui purple basic button" href="/blogs/<%= blog._id %>/comments/new">New Comment</a>
+        </div>
+            <hr>
+        <div class="content" >
+            <% blog.comments.forEach((comment)=>{ %>
+                <p id="comments"><strong><%= comment.author.username%></strong><span id="fltEnd"><%=comment.created.toDateString()%></span></p>
+                <p style="word-wrap: break-word"><span id="fltCenter"><%= comment.text%></span></p>
+                <div class="ui centered grid" id="givePd">
+                <%  if((currentUser && comment.author.id.equals(currentUser._id)) || (currentUser && currentUser.isAdmin)){   %>
+                    <a class="givePd ui tiny right floated green basic button" href="/blogs/<%= blog._id %>/comments/<%= comment._id %>/edit">Edit</a>
+                    <form  id="delete" action="/blogs/<%= blog._id%>/comments/<%= comment._id %>?_method=DELETE" method="POST">
+                        <button class="givePd ui tiny right floated  red basic button">Delete</button>
+                    </form>
+                <%   }%>
+                </div>
+                <hr>
+            <% }) %>
+        </div>
+
+
+    </div>
+
+
+</div>
+<%- include("../partials/footer")  %>

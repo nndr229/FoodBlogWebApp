@@ -1,0 +1,35 @@
+<%- include("../partials/header") %>
+<div class="ui main text container segment">
+    <div class="ui content">
+        <div class="ui centered rounded  image" style="width:50%;margin-left: 25%;">
+            <img src="<%=user.image %> " >
+        </div>
+        <h1><%= user.firstName + " " + user.lastName %></h1>
+        <p><%=user.email %></p><br>
+        <h4><%= user.firstName + "'s"%> Blogs</h4>
+        <ul>
+            <%  blogs.forEach((blog)=>{  %>
+                <li><a href="/blogs/<%= blog.id %>"><%= blog.title %></a></li>
+            <%  })  %>
+        </ul>
+        <div class="ui centered grid" style="margin-bottom: 5px;">
+            <%  if((currentUser && user._id.equals(currentUser._id)) || (currentUser && currentUser.isAdmin)){  %>
+            <a href="<%=user._id %>/edit"><button class="ui green basic button">Edit Profile</button></a>
+            <% } %>
+            <% if(currentUser && (user.username !== currentUser.username)){ %>  
+                <a href="/follow/<%= user.id %>" id="hideFollow"><button class="ui basic  blue button">Follow <%= user.username %></button></a>
+                <% for(let i =0; i<user.followers.length; i++){ %>
+                <%  if(user.followers[i].equals(currentUser._id)){  %>
+                        <a href="/unfollow/<%= user.id %>" id="unfollow"><button class="ui basic red button">Unfollow <%= user.username %></button></a>                                
+            <% }}} %>
+            <a href="/users/<%= user._id  %>/followers" ><button class="ui basic purple button">Followers </button></a> 
+        </div>     
+    </div>
+</div>
+<script>
+ if($("#unfollow").is(":visible")){
+    $("#hideFollow").hide();
+ }
+</script>
+<%- include("../partials/footer") %>
+

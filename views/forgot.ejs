@@ -1,0 +1,13 @@
+<%- include("partials/header") %>
+<div class="ui main text container segment">
+    <div class="ui huge header">Reset your password</div>
+    <form class = "ui form" action="/forgot" method="POST">
+        <div class="field">
+            <label>email</label>
+            <input type="email" name="email" required>   
+        </div>
+        <input class="ui green basic big button" type="submit" value="Reset Password">
+    </form>    
+</div>
+
+<%- include("partials/footer")  %> 

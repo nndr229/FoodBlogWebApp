@@ -1,0 +1,41 @@
+<%- include("../partials/header")  %> 
+<div class="ui  main text container">
+    <div class="ui huge text header" id="align">Blog Posts</div>
+    <div class="ui top attached segment">
+        <div class="ui centered divided items" id="index_justify">
+            <% blogsToPush.forEach((element) => { %>
+                    <div class="item">
+                        <div class="image" id="marginise">
+                            <img src="<%= element.image %> ">
+                        </div>
+                        <div class=" content" id="marginise" >
+                            <div class="top" >
+                                <a class="ui header" href="/blogs/<%= element._id %> "><%= element.title %></a>
+                            </div>
+                            <div class=" " id="date">
+                                <span> <%= element.created.toDateString() %> </span>
+                            </div>
+                            <div class="description ">
+                                <p><%- element.body.substring(0,90) %>...</p>
+                                <p><em>Submitted by - <a href='/users/<%=element.author.id %>'><%=element.author.username%></em></a></p>
+                            </div>
+                            <div class="extra" >
+                                <a class="ui floated basic violet button" href="/blogs/<%= element._id %> ">
+                                    Read More<i class="right chevron icon" id="r_icon"></i></a>
+                            </div>
+                        </div>
+                    </div> 
+               <%   }); %>   
+        </div>
+    </div>
+</div>
+<script>
+    let w = $( window ).width();
+    console.log(w);
+     if(w<700){ 
+        $(".content").css('marginLeft','20px');
+        $(".top").css("marginTop", "10px")
+    }
+
+</script>
+<%- include("../partials/footer")  %> 

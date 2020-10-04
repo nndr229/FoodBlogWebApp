@@ -1,0 +1,52 @@
+<%- include("../partials/header") %>
+<div class="ui main text container segment">
+    <div class="ui huge header centered">Notifications</div>
+    <div class="ui content">
+        <div class="ui header">Blog Notifications</div>
+        <div class="ui content" style="height: 300px;">
+            <div style="height: 100%; overflow: scroll;">
+                <ul>
+                    <% allNotifications.forEach(function(notification) { %>
+                    <li>
+                        <a href="/blogs/<%= notification.blogId %>">
+                            <%= notification.username %> created a new blog %>
+                        </a>
+                    </li>
+                    <% }); %>
+                </ul>
+            </div>
+        </div>        
+        <div class="ui header" >Comment Notifications</div>
+        <div class="ui content" style="height: 300px;">
+            <div style="height: 100%; overflow: scroll;">
+                <ul>
+                    <% allCommentNotifications.forEach(function(notification) { %>
+                    <li>
+                        <a href="/blogs/<%= notification.BlogId %>">
+                            <%= notification.username %> commented on your blog <%= notification.BlogTitle %> 
+                        </a>
+                    </li>
+                    <% }); %>
+                </ul>
+            </div>
+        </div>
+
+        <div class="ui header" >Follower Notifications</div>
+        <div class="ui content" style="height: 300px;">
+            <div style="height: 100%; overflow: scroll;">
+                <ul>
+                    <% allFollowerNotifications.forEach(function(notification) { %>
+                    <li>
+                        <a href="/users/<%= notification.FollowerId %>">
+                            <%= notification.username %> followed you
+                        </a>
+                    </li>
+                    <% }); %>
+                </ul>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+<%- include("../partials/footer")  %> 
