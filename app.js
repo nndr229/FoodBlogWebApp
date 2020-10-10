@@ -350,7 +350,9 @@ app.put('/blogs/:id', checkBlogOwnership, upload.single('image'), (req, res) => 
 			} else {
 				if (req.file) {
 					try {
-						await cloudinary.uploader.destroy(foundBlog.imageId);
+						if(foundBlog.imageId){
+							await cloudinary.uploader.destroy(foundBlog.imageId);
+						}
 						var result = await cloudinary.v2.uploader.upload(req.file.path);
 						foundBlog.imageId = result.public_id;
 						foundBlog.image = result.secure_url;
