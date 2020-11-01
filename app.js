@@ -211,6 +211,9 @@ app.get('/blogs', (req, res) => {
 	let noMatch = null;
 	if (req.query.search) {
 		req.query.search = req.sanitize(req.query.search);
+		req.query.search = sanitizeHTML(req.query.search, {
+			allowedTags: [],
+		});
 		const regex = new RegExp(escapeRegex(req.query.search), 'gi');
 		Promise.all([Blog.find({ title: regex }), User.find({ username: regex })])
 			.then((results) => {
