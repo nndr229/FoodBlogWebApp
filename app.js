@@ -21,14 +21,15 @@ const express = require('express'),
 	cloudinary = require('cloudinary'),
 	Notification = require('./models/notification'),
 	CommentNotification = require('./models/commentNotification'),
-	FollowerNotification = require('./models/followerNotification');
+	FollowerNotification = require('./models/followerNotification'),
+	mongoSanitize = require('express-mongo-sanitize');
 
 // 'mongodb://localhost/restful_blog_app'
 mongoose
 	.connect(process.env.DATABASEURL, {
 		useNewUrlParser: true,
 		useUnifiedTopology: true,
-		useFindAndModify: false
+		useFindAndModify: false,
 	})
 	.then(() => console.log('Connected to DB!'))
 	.catch((error) => console.log(error.message));
@@ -44,12 +45,14 @@ app.use(
 	require('express-session')({
 		secret: 'This is the secret password for the Blog App',
 		resave: false,
-		saveUninitialized: false
+		saveUninitialized: false,
 	})
 );
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(mongoSanitize());
+
 passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
@@ -71,7 +74,9 @@ app.use(async (req, res, next) => {
 	res.locals.sanitizeHTML = require('sanitize-html');
 	if (req.user) {
 		try {
-			let user = await User.findById(req.user._id).populate('notifications', null, { isBlogRead: false }).exec();
+			let user = await User.findById(req.user._id)
+				.populate('notifications', null, { isBlogRead: false })
+				.exec();
 			res.locals.notifications = user.notifications.reverse();
 			let userComments = await User.findById(req.user._id)
 				.populate('commentNotifications', null, { isCommentRead: false })
@@ -172,7 +177,7 @@ let checkProfileOwnership = (req, res, next) => {
 let storage = multer.diskStorage({
 	filename: (req, file, callback) => {
 		callback(null, Date.now() + file.originalname);
-	}
+	},
 });
 let imageFilter = (req, file, cb) => {
 	// accept image files only
@@ -186,7 +191,7 @@ let upload = multer({ storage: storage, fileFilter: imageFilter });
 cloudinary.config({
 	cloud_name: 'dswdml3yx',
 	api_key: process.env.CLOUDINARY_API_KEY,
-	api_secret: process.env.CLOUDINARY_API_SECRET
+	api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 // First test blog post inserted to DB
 
@@ -207,9 +212,9 @@ app.get('/blogs', (req, res) => {
 	if (req.query.search) {
 		req.query.search = req.sanitize(req.query.search);
 		const regex = new RegExp(escapeRegex(req.query.search), 'gi');
-		Promise.all([ Blog.find({ title: regex }), User.find({ username: regex }) ])
+		Promise.all([Blog.find({ title: regex }), User.find({ username: regex })])
 			.then((results) => {
-				const [ foundBlogs, foundUsers ] = results;
+				const [foundBlogs, foundUsers] = results;
 
 				if (foundBlogs.length < 1 && foundUsers.length < 1) {
 					req.flash('error', 'No Users/Blogs match your search');
@@ -217,7 +222,7 @@ app.get('/blogs', (req, res) => {
 				} else if (foundBlogs.length > 0 || foundUsers.length > 0) {
 					for (let i = 0; i < foundBlogs.length; i++) {
 						const clean = sanitizeHTML(foundBlogs[i].body, {
-							allowedTags: [ 'h3', 'p', 'strong', 'br', 'caption' ]
+							allowedTags: ['h3', 'p', 'strong', 'br', 'caption'],
 						});
 						foundBlogs[i].body = clean;
 						console.log(foundBlogs[i].body);
@@ -236,7 +241,7 @@ app.get('/blogs', (req, res) => {
 			} else {
 				for (let i = 0; i < blogs.length; i++) {
 					const clean = sanitizeHTML(blogs[i].body, {
-						allowedTags: [ 'h3', 'p', 'strong', 'br', 'caption' ]
+						allowedTags: ['h3', 'p', 'strong', 'br', 'caption'],
 					});
 					blogs[i].body = clean;
 					console.log(blogs[i].body);
@@ -254,7 +259,10 @@ app.get('/blogs/new', isLoggedIn, (req, res) => {
 });
 
 // (3) CREATE ROUTE -> /blogs  POST
-app.post('/blogs', isLoggedIn, upload.single('image'), async function(req, res) {
+app.post('/blogs', isLoggedIn, upload.single('image'), async function (
+	req,
+	res
+) {
 	req.body.blog.body = req.sanitize(req.body.blog.body);
 	// console.log(`REQ.BODY.BLOG.IMAGE = ${req.body.blog.image === ''}`);
 	if (req.body.blog.image === '') {
@@ -265,14 +273,16 @@ app.post('/blogs', isLoggedIn, upload.single('image'), async function(req, res) 
 			// add author to blog
 			req.body.blog.author = {
 				id: req.user._id,
-				username: req.user.username
+				username: req.user.username,
 			};
 			try {
 				let blog = await Blog.create(req.body.blog);
-				let user = await User.findById(req.user._id).populate('followers').exec();
+				let user = await User.findById(req.user._id)
+					.populate('followers')
+					.exec();
 				let newNotification = {
 					username: req.user.username,
-					blogId: blog.id
+					blogId: blog.id,
 				};
 				for (const follower of user.followers) {
 					let notification = await Notification.create(newNotification);
@@ -290,14 +300,14 @@ app.post('/blogs', isLoggedIn, upload.single('image'), async function(req, res) 
 		let newBlog = req.body.blog;
 		newBlog.author = {
 			id: req.user._id,
-			username: req.user.username
+			username: req.user.username,
 		};
 		try {
 			let blog = await Blog.create(req.body.blog);
 			let user = await User.findById(req.user._id).populate('followers').exec();
 			let newNotification = {
 				username: req.user.username,
-				blogId: blog.id
+				blogId: blog.id,
 			};
 			for (const follower of user.followers) {
 				let notification = await Notification.create(newNotification);
@@ -316,14 +326,16 @@ app.post('/blogs', isLoggedIn, upload.single('image'), async function(req, res) 
 
 //(4) SHOW -> /blogs/:id  GET
 app.get('/blogs/:id', (req, res) => {
-	Blog.findById(req.params.id).populate('comments').exec((err, foundBlog) => {
-		if (err || !foundBlog) {
-			req.flash('error', "That blog doesn't exist.");
-			res.redirect('/blogs');
-		} else {
-			res.render('blog/show', { blog: foundBlog });
-		}
-	});
+	Blog.findById(req.params.id)
+		.populate('comments')
+		.exec((err, foundBlog) => {
+			if (err || !foundBlog) {
+				req.flash('error', "That blog doesn't exist.");
+				res.redirect('/blogs');
+			} else {
+				res.render('blog/show', { blog: foundBlog });
+			}
+		});
 });
 
 //(5) EDIT -> /blogs/:id/edit  GET
@@ -339,51 +351,60 @@ app.get('/blogs/:id/edit', checkBlogOwnership, (req, res) => {
 });
 
 //(6) UPDATE -> /blogs/:id  PUT
-app.put('/blogs/:id', checkBlogOwnership, upload.single('image'), (req, res) => {
-	req.body.blog.body = req.sanitize(req.body.blog.body);
-	console.log(req.file);
-	if (req.file !== undefined) {
-		Blog.findById(req.params.id, async function(err, foundBlog) {
-			if (err) {
-				req.flash('error', 'Something went wrong!');
-				res.redirect('back');
-			} else {
-				if (req.file) {
-					try {
-						if(foundBlog.imageId){
-							await cloudinary.uploader.destroy(foundBlog.imageId);
+app.put(
+	'/blogs/:id',
+	checkBlogOwnership,
+	upload.single('image'),
+	(req, res) => {
+		req.body.blog.body = req.sanitize(req.body.blog.body);
+		console.log(req.file);
+		if (req.file !== undefined) {
+			Blog.findById(req.params.id, async function (err, foundBlog) {
+				if (err) {
+					req.flash('error', 'Something went wrong!');
+					res.redirect('back');
+				} else {
+					if (req.file) {
+						try {
+							if (foundBlog.imageId) {
+								await cloudinary.uploader.destroy(foundBlog.imageId);
+							}
+							var result = await cloudinary.v2.uploader.upload(req.file.path);
+							foundBlog.imageId = result.public_id;
+							foundBlog.image = result.secure_url;
+						} catch (err) {
+							req.flash('error', err.message);
+							return res.redirect('back');
 						}
-						var result = await cloudinary.v2.uploader.upload(req.file.path);
-						foundBlog.imageId = result.public_id;
-						foundBlog.image = result.secure_url;
-					} catch (err) {
-						req.flash('error', err.message);
-						return res.redirect('back');
+					}
+					foundBlog.title = req.body.blog.title;
+					foundBlog.body = req.body.blog.body;
+					foundBlog.save();
+					req.flash('success', 'Successfully Updated!');
+					res.redirect('/blogs/' + foundBlog._id);
+				}
+			});
+		} else {
+			Blog.findByIdAndUpdate(
+				req.params.id,
+				req.body.blog,
+				(err, updatedBlog) => {
+					if (err) {
+						res.redirect('/blogs');
+					} else {
+						res.redirect(`/blogs/${req.params.id}`);
 					}
 				}
-				foundBlog.title = req.body.blog.title;
-				foundBlog.body = req.body.blog.body;
-				foundBlog.save();
-				req.flash('success', 'Successfully Updated!');
-				res.redirect('/blogs/' + foundBlog._id);
-			}
-		});
-	} else {
-		Blog.findByIdAndUpdate(req.params.id, req.body.blog, (err, updatedBlog) => {
-			if (err) {
-				res.redirect('/blogs');
-			} else {
-				res.redirect(`/blogs/${req.params.id}`);
-			}
-		});
+			);
+		}
 	}
-});
+);
 
 //(6) DESTROY -> /blogs/:id  DELETE
 app.delete('/blogs/:id', checkBlogOwnership, isLoggedIn, (req, res) => {
 	Notification.findOne({
-		blogId: req.params.id
-	}).remove(function(err, results) {
+		blogId: req.params.id,
+	}).remove(function (err, results) {
 		if (err) {
 			console.log(err);
 		}
@@ -439,7 +460,7 @@ app.get('/blogs/:id/feed', isLoggedIn, (req, res) => {
 							for (let i = 0; i < foundBlogs.length; i++) {
 								for (let j = 0; j < foundBlogs[i].length; j++) {
 									const cleaned = sanitizeHTML(foundBlogs[i][j].body, {
-										allowedTags: [ 'h3', 'p', 'strong', 'br', 'caption' ]
+										allowedTags: ['h3', 'p', 'strong', 'br', 'caption'],
 									});
 									foundBlogs[i][j].body = cleaned;
 									blogsToPush.push(foundBlogs[i][j]);
@@ -499,11 +520,13 @@ app.post('/blogs/:id/comments', isLoggedIn, (req, res) => {
 						username: req.user.username,
 						CommentId: comment.id,
 						BlogId: req.params.id,
-						BlogTitle: blog.title
+						BlogTitle: blog.title,
 					};
 					let userF = await User.findById(blog.author.id);
 
-					let notification = await CommentNotification.create(newCommentNotification);
+					let notification = await CommentNotification.create(
+						newCommentNotification
+					);
 					userF.commentNotifications.push(notification);
 
 					userF.save();
@@ -523,48 +546,67 @@ app.post('/blogs/:id/comments', isLoggedIn, (req, res) => {
 });
 
 // Comment edit
-app.get('/blogs/:id/comments/:comment_id/edit', checkCommentOwnership, (req, res) => {
-	Comment.findById(req.params.comment_id, (err, foundComment) => {
-		if (err || !foundComment) {
-			req.flash('error', 'You do not have permission to do that!');
-			res.redirect('back');
-		} else {
-			res.render('comments/edit', { blog_id: req.params.id, comment: foundComment });
-		}
-	});
-});
+app.get(
+	'/blogs/:id/comments/:comment_id/edit',
+	checkCommentOwnership,
+	(req, res) => {
+		Comment.findById(req.params.comment_id, (err, foundComment) => {
+			if (err || !foundComment) {
+				req.flash('error', 'You do not have permission to do that!');
+				res.redirect('back');
+			} else {
+				res.render('comments/edit', {
+					blog_id: req.params.id,
+					comment: foundComment,
+				});
+			}
+		});
+	}
+);
 
 // comment update
-app.put('/blogs/:id/comments/:comment_id', checkCommentOwnership, (req, res) => {
-	req.body.comment.body = req.sanitize(req.body.comment.body);
-	Comment.findByIdAndUpdate(req.params.comment_id, req.body.comment, (err, updatedComment) => {
-		if (err) {
-			res.redirect('back');
-		} else {
-			res.redirect(`/blogs/${req.params.id}`);
-		}
-	});
-});
+app.put(
+	'/blogs/:id/comments/:comment_id',
+	checkCommentOwnership,
+	(req, res) => {
+		req.body.comment.body = req.sanitize(req.body.comment.body);
+		Comment.findByIdAndUpdate(
+			req.params.comment_id,
+			req.body.comment,
+			(err, updatedComment) => {
+				if (err) {
+					res.redirect('back');
+				} else {
+					res.redirect(`/blogs/${req.params.id}`);
+				}
+			}
+		);
+	}
+);
 
 // comment destroy
 
-app.delete('/blogs/:id/comments/:comment_id', checkCommentOwnership, (req, res) => {
-	CommentNotification.findOne({
-		CommentId: req.params.comment_id
-	}).remove(function(err, results) {
-		if (err) {
-			console.log(err);
-		}
-	});
-	Comment.findByIdAndRemove(req.params.comment_id, (err) => {
-		if (err) {
-			console.log(err);
-			res.redirect('back');
-		} else {
-			res.redirect(`/blogs/${req.params.id}`);
-		}
-	});
-});
+app.delete(
+	'/blogs/:id/comments/:comment_id',
+	checkCommentOwnership,
+	(req, res) => {
+		CommentNotification.findOne({
+			CommentId: req.params.comment_id,
+		}).remove(function (err, results) {
+			if (err) {
+				console.log(err);
+			}
+		});
+		Comment.findByIdAndRemove(req.params.comment_id, (err) => {
+			if (err) {
+				console.log(err);
+				res.redirect('back');
+			} else {
+				res.redirect(`/blogs/${req.params.id}`);
+			}
+		});
+	}
+);
 
 // Register Route
 app.get('/register', (req, res) => {
@@ -586,7 +628,7 @@ app.post('/register', upload.single('image'), (req, res) => {
 				lastName: req.body.lastName,
 				email: req.body.email,
 				image: result.secure_url,
-				imageId: result.public_id
+				imageId: result.public_id,
 			};
 			if (req.body.adminCode === 'secretblogcode2294toenternithinsapp') {
 				newUser.isAdmin = true;
@@ -610,7 +652,7 @@ app.post('/register', upload.single('image'), (req, res) => {
 			username: req.body.username,
 			firstName: req.body.firstName,
 			lastName: req.body.lastName,
-			email: req.body.email
+			email: req.body.email,
 		};
 		if (req.body.adminCode === 'secretblogcode2294toenternithinsapp') {
 			newUser.isAdmin = true;
@@ -638,7 +680,10 @@ app.get('/login', (req, res) => {
 
 app.post(
 	'/login',
-	passport.authenticate('local', { successRedirect: '/blogs', failureRedirect: '/login' }),
+	passport.authenticate('local', {
+		successRedirect: '/blogs',
+		failureRedirect: '/login',
+	}),
 	(req, res) => {}
 );
 
@@ -650,22 +695,22 @@ app.get('/logout', (req, res) => {
 });
 
 // forgot password
-app.get('/forgot', function(req, res) {
+app.get('/forgot', function (req, res) {
 	res.render('forgot');
 });
 
-app.post('/forgot', function(req, res, next) {
+app.post('/forgot', function (req, res, next) {
 	async.waterfall(
 		[
-			function(done) {
-				crypto.randomBytes(20, function(err, buf) {
+			function (done) {
+				crypto.randomBytes(20, function (err, buf) {
 					let token = buf.toString('hex');
 					done(err, token);
 				});
 			},
-			function(token, done) {
+			function (token, done) {
 				req.body.email = req.sanitize(req.body.email);
-				User.findOne({ email: req.body.email }, function(err, user) {
+				User.findOne({ email: req.body.email }, function (err, user) {
 					if (!user) {
 						req.flash('error', 'No account with that email address exists.');
 						return res.redirect('/forgot');
@@ -674,18 +719,18 @@ app.post('/forgot', function(req, res, next) {
 					user.resetPasswordToken = token;
 					user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
 
-					user.save(function(err) {
+					user.save(function (err) {
 						done(err, token, user);
 					});
 				});
 			},
-			function(token, user, done) {
+			function (token, user, done) {
 				let smtpTransport = nodemailer.createTransport({
 					service: 'Gmail',
 					auth: {
 						user: 'nithinsblogapp229@gmail.com',
-						pass: process.env.GMAILPW
-					}
+						pass: process.env.GMAILPW,
+					},
 				});
 				let mailOptions = {
 					to: user.email,
@@ -699,55 +744,69 @@ app.post('/forgot', function(req, res, next) {
 						'/reset/' +
 						token +
 						'\n\n' +
-						'If you did not request this, please ignore this email and your password will remain unchanged.\n'
+						'If you did not request this, please ignore this email and your password will remain unchanged.\n',
 				};
-				smtpTransport.sendMail(mailOptions, function(err) {
+				smtpTransport.sendMail(mailOptions, function (err) {
 					console.log('mail sent');
-					req.flash('success', 'An e-mail has been sent to ' + user.email + ' with further instructions.');
+					req.flash(
+						'success',
+						'An e-mail has been sent to ' +
+							user.email +
+							' with further instructions.'
+					);
 					done(err, 'done');
 				});
-			}
+			},
 		],
-		function(err) {
+		function (err) {
 			if (err) return next(err);
 			res.redirect('/forgot');
 		}
 	);
 });
 
-app.get('/reset/:token', function(req, res) {
-	User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } }, function(
-		err,
-		user
-	) {
-		if (!user) {
-			req.flash('error', 'Password reset token is invalid or has expired.');
-			return res.redirect('/forgot');
+app.get('/reset/:token', function (req, res) {
+	User.findOne(
+		{
+			resetPasswordToken: req.params.token,
+			resetPasswordExpires: { $gt: Date.now() },
+		},
+		function (err, user) {
+			if (!user) {
+				req.flash('error', 'Password reset token is invalid or has expired.');
+				return res.redirect('/forgot');
+			}
+			res.render('reset', { token: req.params.token });
 		}
-		res.render('reset', { token: req.params.token });
-	});
+	);
 });
 
-app.post('/reset/:token', function(req, res) {
+app.post('/reset/:token', function (req, res) {
 	async.waterfall(
 		[
-			function(done) {
+			function (done) {
 				User.findOne(
-					{ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } },
-					function(err, user) {
+					{
+						resetPasswordToken: req.params.token,
+						resetPasswordExpires: { $gt: Date.now() },
+					},
+					function (err, user) {
 						if (!user) {
-							req.flash('error', 'Password reset token is invalid or has expired.');
+							req.flash(
+								'error',
+								'Password reset token is invalid or has expired.'
+							);
 							return res.redirect('back');
 						}
 						req.body.password = req.sanitize(req.body.password);
 						req.body.confirm = req.sanitize(req.body.confirm);
 						if (req.body.password === req.body.confirm) {
-							user.setPassword(req.body.password, function(err) {
+							user.setPassword(req.body.password, function (err) {
 								user.resetPasswordToken = undefined;
 								user.resetPasswordExpires = undefined;
 
-								user.save(function(err) {
-									req.logIn(user, function(err) {
+								user.save(function (err) {
+									req.logIn(user, function (err) {
 										done(err, user);
 									});
 								});
@@ -759,13 +818,13 @@ app.post('/reset/:token', function(req, res) {
 					}
 				);
 			},
-			function(user, done) {
+			function (user, done) {
 				let smtpTransport = nodemailer.createTransport({
 					service: 'Gmail',
 					auth: {
 						user: 'nithinsblogapp229@gmail.com',
-						pass: process.env.GMAILPW
-					}
+						pass: process.env.GMAILPW,
+					},
 				});
 				let mailOptions = {
 					to: user.email,
@@ -775,15 +834,15 @@ app.post('/reset/:token', function(req, res) {
 						'Hello,\n\n' +
 						'This is a confirmation that the password for your account ' +
 						user.email +
-						' has just been changed.\n'
+						' has just been changed.\n',
 				};
-				smtpTransport.sendMail(mailOptions, function(err) {
+				smtpTransport.sendMail(mailOptions, function (err) {
 					req.flash('success', 'Success! Your password has been changed.');
 					done(err);
 				});
-			}
+			},
 		],
-		function(err) {
+		function (err) {
 			res.redirect('/blogs');
 		}
 	);
@@ -796,25 +855,34 @@ app.get('/users/:id', async (req, res) => {
 			req.flash('error', 'Something went wrong');
 			res.redirect('/blogs');
 		} else {
-			Blog.find().where('author.id').equals(foundUser._id).exec(async (err, blogs) => {
-				if (err) {
-					req.flash('error', 'Something went wrong');
-					res.redirect('/blogs');
-				} else {
-					try {
-						let userFollowers = await User.findById(req.params.id).populate('followers').exec();
-						res.render('users/show', { user: foundUser, blogs: blogs, userFollowers: userFollowers });
-					} catch (err) {
-						req.flash('error', err.message);
-						return res.redirect('back');
+			Blog.find()
+				.where('author.id')
+				.equals(foundUser._id)
+				.exec(async (err, blogs) => {
+					if (err) {
+						req.flash('error', 'Something went wrong');
+						res.redirect('/blogs');
+					} else {
+						try {
+							let userFollowers = await User.findById(req.params.id)
+								.populate('followers')
+								.exec();
+							res.render('users/show', {
+								user: foundUser,
+								blogs: blogs,
+								userFollowers: userFollowers,
+							});
+						} catch (err) {
+							req.flash('error', err.message);
+							return res.redirect('back');
+						}
 					}
-				}
-			});
+				});
 		}
 	});
 });
 
-app.get('/follow/:id', isLoggedIn, async function(req, res) {
+app.get('/follow/:id', isLoggedIn, async function (req, res) {
 	try {
 		let user = await User.findById(req.params.id);
 		for (let i = 0; i < user.followers.length; i++) {
@@ -836,10 +904,12 @@ app.get('/follow/:id', isLoggedIn, async function(req, res) {
 		if (req.user.username !== userF.username) {
 			let newFollowerNotification = {
 				username: req.user.username,
-				FollowerId: req.user._id
+				FollowerId: req.user._id,
 			};
 
-			let notification = await FollowerNotification.create(newFollowerNotification);
+			let notification = await FollowerNotification.create(
+				newFollowerNotification
+			);
 			userF.followerNotifications.push(notification);
 
 			userF.save();
@@ -852,7 +922,7 @@ app.get('/follow/:id', isLoggedIn, async function(req, res) {
 	}
 });
 
-app.get('/unfollow/:id', isLoggedIn, async function(req, res) {
+app.get('/unfollow/:id', isLoggedIn, async function (req, res) {
 	try {
 		let user = await User.findById(req.params.id);
 
@@ -872,12 +942,12 @@ app.get('/unfollow/:id', isLoggedIn, async function(req, res) {
 });
 
 // view all notifications add all notifications seen at once
-app.get('/notifications', isLoggedIn, async function(req, res) {
+app.get('/notifications', isLoggedIn, async function (req, res) {
 	try {
 		let user = await User.findById(req.user._id)
 			.populate({
 				path: 'notifications',
-				options: { sort: { _id: -1 } }
+				options: { sort: { _id: -1 } },
 			})
 			.exec();
 		let allNotifications = user.notifications;
@@ -890,7 +960,7 @@ app.get('/notifications', isLoggedIn, async function(req, res) {
 		let commentUser = await User.findById(req.user._id)
 			.populate({
 				path: 'commentNotifications',
-				options: { sort: { _id: -1 } }
+				options: { sort: { _id: -1 } },
 			})
 			.exec();
 		let allCommentNotifications = commentUser.commentNotifications;
@@ -902,7 +972,7 @@ app.get('/notifications', isLoggedIn, async function(req, res) {
 		let followerUser = await User.findById(req.user._id)
 			.populate({
 				path: 'followerNotifications',
-				options: { sort: { _id: -1 } }
+				options: { sort: { _id: -1 } },
 			})
 			.exec();
 		let allFollowerNotifications = followerUser.followerNotifications;
@@ -912,7 +982,11 @@ app.get('/notifications', isLoggedIn, async function(req, res) {
 			notification.save();
 		});
 
-		res.render('notifications/index', { allNotifications, allCommentNotifications, allFollowerNotifications });
+		res.render('notifications/index', {
+			allNotifications,
+			allCommentNotifications,
+			allFollowerNotifications,
+		});
 	} catch (err) {
 		req.flash('error', err.message);
 		res.redirect('back');
@@ -920,7 +994,7 @@ app.get('/notifications', isLoggedIn, async function(req, res) {
 });
 
 // handle notification
-app.get('/notifications/:id', isLoggedIn, async function(req, res) {
+app.get('/notifications/:id', isLoggedIn, async function (req, res) {
 	try {
 		let notification = await Notification.findById(req.params.id);
 		notification.isBlogRead = true;
@@ -932,7 +1006,7 @@ app.get('/notifications/:id', isLoggedIn, async function(req, res) {
 	}
 });
 
-app.get('/commentNotifications/:id', isLoggedIn, async function(req, res) {
+app.get('/commentNotifications/:id', isLoggedIn, async function (req, res) {
 	try {
 		let commentNotification = await CommentNotification.findById(req.params.id);
 		commentNotification.isCommentRead = true;
@@ -944,9 +1018,11 @@ app.get('/commentNotifications/:id', isLoggedIn, async function(req, res) {
 	}
 });
 
-app.get('/followerNotifications/:id', isLoggedIn, async function(req, res) {
+app.get('/followerNotifications/:id', isLoggedIn, async function (req, res) {
 	try {
-		let followerNotification = await FollowerNotification.findById(req.params.id);
+		let followerNotification = await FollowerNotification.findById(
+			req.params.id
+		);
 		followerNotification.isFollowerSeen = true;
 		followerNotification.save();
 		console.log(`/users/${followerNotification.FollowerId}`);
@@ -970,52 +1046,61 @@ app.get('/users/:id/edit', checkProfileOwnership, (req, res) => {
 });
 
 // update user profile
-app.put('/users/:id', checkProfileOwnership, upload.single('image'), (req, res) => {
-	req.body.user.body = req.sanitize(req.body.user.body);
-	if (req.file !== undefined) {
-		User.findById(req.params.id, async function(err, foundUser) {
-			if (err) {
-				req.flash('error', 'Something went wrong!');
-				res.redirect('back');
-			} else {
-				if (req.file) {
-					try {
-						if (foundUser.imageId) {
-							await cloudinary.uploader.destroy(foundUser.imageId);
+app.put(
+	'/users/:id',
+	checkProfileOwnership,
+	upload.single('image'),
+	(req, res) => {
+		req.body.user.body = req.sanitize(req.body.user.body);
+		if (req.file !== undefined) {
+			User.findById(req.params.id, async function (err, foundUser) {
+				if (err) {
+					req.flash('error', 'Something went wrong!');
+					res.redirect('back');
+				} else {
+					if (req.file) {
+						try {
+							if (foundUser.imageId) {
+								await cloudinary.uploader.destroy(foundUser.imageId);
+							}
+							var result = await cloudinary.v2.uploader.upload(req.file.path);
+							foundUser.imageId = result.public_id;
+							foundUser.image = result.secure_url;
+						} catch (err) {
+							req.flash('error', err.message);
+							return res.redirect('back');
 						}
-						var result = await cloudinary.v2.uploader.upload(req.file.path);
-						foundUser.imageId = result.public_id;
-						foundUser.image = result.secure_url;
-					} catch (err) {
-						req.flash('error', err.message);
-						return res.redirect('back');
+					}
+					foundUser.firstName = req.body.user.firstName;
+					foundUser.lastName = req.body.user.lastName;
+					foundUser.email = req.body.user.email;
+					foundUser.username = req.body.user.username;
+					if (req.body.adminCode === 'secretblogcode2294toenternithinsapp') {
+						foundUser.isAdmin = true;
+					}
+					foundUser.save();
+					req.flash('success', 'Successfully Updated!');
+					res.redirect(`/users/${req.params.id}`);
+				}
+			});
+		} else {
+			if (req.body.adminCode === 'secretblogcode2294toenternithinsapp') {
+				req.body.user.isAdmin = true;
+			}
+			User.findByIdAndUpdate(
+				req.params.id,
+				req.body.user,
+				(err, updatedUser) => {
+					if (err) {
+						res.redirect('back');
+					} else {
+						res.redirect(`/users/${req.params.id}`);
 					}
 				}
-				foundUser.firstName = req.body.user.firstName;
-				foundUser.lastName = req.body.user.lastName;
-				foundUser.email = req.body.user.email;
-				foundUser.username = req.body.user.username;
-				if (req.body.adminCode === 'secretblogcode2294toenternithinsapp') {
-					foundUser.isAdmin = true;
-				}
-				foundUser.save();
-				req.flash('success', 'Successfully Updated!');
-				res.redirect(`/users/${req.params.id}`);
-			}
-		});
-	} else {
-		if (req.body.adminCode === 'secretblogcode2294toenternithinsapp') {
-			req.body.user.isAdmin = true;
+			);
 		}
-		User.findByIdAndUpdate(req.params.id, req.body.user, (err, updatedUser) => {
-			if (err) {
-				res.redirect('back');
-			} else {
-				res.redirect(`/users/${req.params.id}`);
-			}
-		});
 	}
-});
+);
 
 app.get('/users/:id/followers', isLoggedIn, (req, res) => {
 	//find user.followers generate a list of users with username image and user url and render the webpage
@@ -1036,7 +1121,10 @@ app.get('/users/:id/followers', isLoggedIn, (req, res) => {
 					} else {
 						followerList.push(foundFollower);
 						if (i === 0) {
-							res.render('users/followers', { user: foundUser, followerList: followerList });
+							res.render('users/followers', {
+								user: foundUser,
+								followerList: followerList,
+							});
 						}
 					}
 				});
