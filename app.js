@@ -43,7 +43,7 @@ app.use(flash());
 //Passport Config
 app.use(
 	require('express-session')({
-		secret: 'This is the secret password for the Blog App',
+		secret: process.env.SECRET_KEY,
 		resave: false,
 		saveUninitialized: false,
 	})
