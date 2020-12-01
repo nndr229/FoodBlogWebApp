@@ -242,7 +242,7 @@
 					<% }else{ %>
 					<div class="ui styled accordion">
 						<div class="title">
-							<a href="#" style="color: rgba(255, 255, 255, 0.9)">
+							<a href="#" style="color: rgba(255, 255, 255, 0.9) ;">
 								Notifications (<%= notifications.length +
 								commentNotifications.length + followerNotifications.length
 								%>)</a
@@ -286,24 +286,26 @@
 				</div>
 			</div>
 
-			<div id="content">
-				<% if(error.length> 0 || success.length>0){ %>
-				<div class="ui main text container segment" id="fill">
-					<% if(error && error.length > 0){ %>
-					<div class="ui red message" style="margin-top: 100px">
-						<p style="text-align: center"><%= error %></p>
-					</div>
-					<% } %> <% if(success && success.length > 0){ %>
-					<div class="ui green message" style="margin-top: 100px">
-						<p style="text-align: center"><%= success %></p>
+			<div class="pusher">
+				<div id="content">
+					<% if(error.length> 0 || success.length>0){ %>
+					<div class="ui main text container segment" id="fill">
+						<% if(error && error.length > 0){ %>
+						<div class="ui red message" style="margin-top: 100px">
+							<p style="text-align: center"><%= error %></p>
+						</div>
+						<% } %> <% if(success && success.length > 0){ %>
+						<div class="ui green message" style="margin-top: 100px">
+							<p style="text-align: center"><%= success %></p>
+						</div>
+						<% } %>
 					</div>
 					<% } %>
+					<script>
+						$('.ui.dropdown').dropdown();
+						$('.ui.accordion').dropdown();
+					</script>
 				</div>
-				<% } %>
-				<script>
-					$('.ui.dropdown').dropdown();
-					$('.ui.accordion').dropdown();
-				</script>
 			</div>
 		</div>
 	</body>
