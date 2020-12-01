@@ -129,6 +129,3 @@ body {
 	margin-top: auto;
 	margin-bottom: auto;
 }
-.sidebar.visible + .pusher {
-	width: calc(100% - 260px);
-}
