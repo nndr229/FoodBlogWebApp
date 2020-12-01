@@ -2,7 +2,7 @@ i.icon {
 	font-size: 2em;
 }
 .container.main {
-	margin-top: 7.0em;
+	margin-top: 7em;
 }
 /* img {
 	height: auto;
@@ -16,7 +16,11 @@ i.icon {
 }
 #color_apply {
 	background: #70e1f5; /* fallback for old browsers */
-	background: -webkit-linear-gradient(to right, #ffd194, #70e1f5); /* Chrome 10-25, Safari 5.1-6 */
+	background: -webkit-linear-gradient(
+		to right,
+		#ffd194,
+		#70e1f5
+	); /* Chrome 10-25, Safari 5.1-6 */
 	background: linear-gradient(
 		to right,
 		#ffd194,
@@ -124,4 +128,7 @@ body {
 #marginise {
 	margin-top: auto;
 	margin-bottom: auto;
+}
+.sidebar.visible + .pusher {
+	width: calc(100% - 260px);
 }
